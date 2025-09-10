@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/auth/:path*", "destination": "https://api.learn.presh.ai/auth/:path*" },
+    { "source": "/api/:path*", "destination": "https://api.learn.presh.ai/api/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+
+
