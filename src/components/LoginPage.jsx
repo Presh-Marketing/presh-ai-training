@@ -62,7 +62,7 @@ const LoginPage = () => {
           <CardHeader className="text-center pb-4">
             <CardTitle className="text-2xl text-slate-800">Welcome Back</CardTitle>
             <CardDescription className="text-slate-600">
-              Sign in with your Presh Marketing Solutions account
+              Sign in with your presh.ai account
             </CardDescription>
           </CardHeader>
           
@@ -91,7 +91,7 @@ const LoginPage = () => {
             <div className="text-center">
               <p className="text-sm text-slate-500">
                 <Shield className="inline w-4 h-4 mr-1" />
-                Restricted to @preshmarketingsolutions.com accounts
+                Restricted to @presh.ai accounts
               </p>
             </div>
           </CardContent>
