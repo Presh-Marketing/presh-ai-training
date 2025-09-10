@@ -1,0 +1,14 @@
+node_modules/
+*.log
+pnpm-lock.yaml
+venv/
+.venv/
+__pycache__/
+*.pyc
+frontend-source/dist/
+src/static/
+*.env
+*.env.*
+!.env.example
+!.env.local.example
+.DS_Store
