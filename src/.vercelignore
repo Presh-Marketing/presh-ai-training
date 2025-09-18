@@ -1,0 +1,6 @@
+# Ignore everything outside src
+../frontend-source
+../venv
+../.git
+../AUTHENTICATION_FIX_SUMMARY.md
+../verify_deployment.sh
