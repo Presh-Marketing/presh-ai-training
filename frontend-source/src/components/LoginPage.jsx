@@ -14,13 +14,22 @@ const LoginPage = () => {
     const urlParams = new URLSearchParams(window.location.search)
     const errorType = urlParams.get('error')
     const domain = urlParams.get('domain')
+    const why = urlParams.get('why')
     
     if (errorType === 'unauthorized_domain') {
       setError(`Access restricted to ${domain} email addresses only.`)
     } else if (errorType === 'auth_failed') {
-      setError('Authentication failed. Please try again.')
+      // Show detailed error if available
+      const errorMessage = why ? `Authentication failed: ${decodeURIComponent(why)}` : 'Authentication failed. Please try again.'
+      setError(errorMessage)
     } else if (errorType === 'invalid_state') {
       setError('Security validation failed. Please try again.')
+    } else if (errorType === 'auth_init_failed') {
+      // Show detailed error if available
+      const errorMessage = why ? `Authentication initialization failed: ${decodeURIComponent(why)}` : 'Failed to initialize authentication. Please try again.'
+      setError(errorMessage)
+    } else if (errorType === 'provider_missing') {
+      setError('Authentication provider not configured. Please contact support.')
     }
   }, [])
 

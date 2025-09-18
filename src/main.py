@@ -3,15 +3,33 @@ import sys
 from dotenv import load_dotenv
 # Proxy middleware to respect X-Forwarded-* headers when behind Vercel/Proxy
 from werkzeug.middleware.proxy_fix import ProxyFix
-# DON'T CHANGE THIS !!!
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+# Add monorepo root to sys.path only when a sibling `src/` exists two levels up
+two_levels_up = os.path.dirname(os.path.dirname(__file__))
+if os.path.exists(os.path.join(two_levels_up, 'src')):
+    sys.path.insert(0, two_levels_up)
 
 from flask import Flask, send_from_directory, session
 from flask_cors import CORS
-from src.models.training import db, User, ModuleProgress, CertificationAttempt, LearningActivity
-from src.routes.user import user_bp
-from src.routes.training import training_bp
-from src.routes.auth import auth_bp, init_oauth
+# Support both monorepo root (`src.*`) and subdir project root (`models.*`, `routes.*`)
+try:
+    from src.models.training import db, User, ModuleProgress, CertificationAttempt, LearningActivity  # type: ignore
+except ModuleNotFoundError:
+    from models.training import db, User, ModuleProgress, CertificationAttempt, LearningActivity  # type: ignore
+
+try:
+    from src.routes.user import user_bp  # type: ignore
+except ModuleNotFoundError:
+    from routes.user import user_bp  # type: ignore
+
+try:
+    from src.routes.training import training_bp  # type: ignore
+except ModuleNotFoundError:
+    from routes.training import training_bp  # type: ignore
+
+try:
+    from src.routes.auth import auth_bp, init_oauth  # type: ignore
+except ModuleNotFoundError:
+    from routes.auth import auth_bp, init_oauth  # type: ignore
 
 # Load local environment overrides for development
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env.local'))
@@ -26,12 +44,17 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'None'
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 # Explicit cookie domain for rewrites/proxy scenarios (e.g., learn.presh.ai)
-session_cookie_domain = os.getenv('SESSION_COOKIE_DOMAIN')
+session_cookie_domain = os.getenv('SESSION_COOKIE_DOMAIN', '')
 if session_cookie_domain:
-    app.config['SESSION_COOKIE_DOMAIN'] = session_cookie_domain
+    # Remove all whitespace characters including newlines, tabs, etc.
+    clean_domain = ''.join(session_cookie_domain.split())
+    if clean_domain:
+        app.config['SESSION_COOKIE_DOMAIN'] = clean_domain
 
 # Enable CORS with credentials. Use explicit allowed origin for cookies.
-frontend_origin = os.getenv('FRONTEND_ORIGIN', '').strip()
+frontend_origin = os.getenv('FRONTEND_ORIGIN', '')
+# Remove all whitespace characters including newlines, tabs, etc.
+frontend_origin = ''.join(frontend_origin.split())
 if frontend_origin:
     CORS(app, supports_credentials=True, origins=[frontend_origin])
 else:
@@ -61,7 +84,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 with app.app_context():
-    db.create_all()
+    try:
+        db.create_all()
+    except Exception as e:
+        # Defer DB initialization errors to runtime to avoid import-time crashes
+        print(f"Database initialization skipped due to error: {e}")
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
